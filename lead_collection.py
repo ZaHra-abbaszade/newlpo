@@ -4,6 +4,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from utils import get_jira, authenticate_gspread, create_or_get_worksheet, add_issue_to_worksheet, map_month_to_persian
 from val_lc import get_cell_value_from_val
 from datetime import datetime
+from persiantools.jdatetime import JalaliDate  # برای ماه شمسی
 from pathlib import Path
 
 # Function to validate the input format for customfield_22304
@@ -134,26 +135,29 @@ def main():
         perform_transition(jira, issue_key, "NVR Linked Issue", comment="Transitioned to NVR Linked Issue by script.")
         issue_keys_with_time.append((issue_key, datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
-    # Connect to Google Sheets
+    # اتصال به Google Sheets
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+
+    # تنظیم مسیر فایل JSON به صورت نسبی
     current_directory = Path(__file__).parent
     json_keyfile = current_directory / "json.json"
-
     client = authenticate_gspread(json_keyfile, scope)
 
-    # Create or open the spreadsheet
+    # ایجاد یا باز کردن spreadsheet اصلی
     try:
         spreadsheet = client.open('Monthly Update LPO')
         print(f"Spreadsheet 'Monthly Update LPO' already exists.")
     except gspread.exceptions.SpreadsheetNotFound:
         spreadsheet = client.create('Monthly Update LPO')
         print(f"Spreadsheet 'Monthly Update LPO' created.")
+        
+    current_month = JalaliDate.today().strftime('%B')
 
-    # Create or open the worksheet for Lead Collection updates
-    lead_collection_worksheet_name = f"Lead Collection {custom_month_field_value}"
+    # گرفتن ماه شمسی جاری
+    lead_collection_worksheet_name = f"Lead Collection {current_month}"
     lead_collection_worksheet = create_or_get_worksheet(spreadsheet, lead_collection_worksheet_name)
 
-    # Add issue data to the worksheet
+    # افزودن اطلاعات issues به worksheet
     add_issue_to_worksheet(lead_collection_worksheet, issue_keys_with_time)
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 from utils import get_jira, authenticate_gspread, create_or_get_worksheet, add_issue_to_worksheet, map_month_to_persian
 from val_lc import get_cell_value_from_val
 from datetime import datetime
+from persiantools.jdatetime import JalaliDate  # برای ماه شمسی
 from pathlib import Path
 import re
 
@@ -155,7 +156,6 @@ def main():
     # تنظیم مسیر فایل JSON به صورت نسبی
     current_directory = Path(__file__).parent
     json_keyfile = current_directory / "json.json"
-
     client = authenticate_gspread(json_keyfile, scope)
 
     # ایجاد یا باز کردن spreadsheet اصلی
@@ -165,9 +165,11 @@ def main():
     except gspread.exceptions.SpreadsheetNotFound:
         spreadsheet = client.create('Monthly Update LPO')
         print(f"Spreadsheet 'Monthly Update LPO' created.")
+        
+    current_month = JalaliDate.today().strftime('%B')
 
     # گرفتن ماه شمسی جاری
-    lead_collection_worksheet_name = f"Lead Collection {custom_month_field_value}"
+    lead_collection_worksheet_name = f"Lead Collection {current_month}"
     lead_collection_worksheet = create_or_get_worksheet(spreadsheet, lead_collection_worksheet_name)
 
     # افزودن اطلاعات issues به worksheet

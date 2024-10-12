@@ -5,7 +5,7 @@ from jira import JIRA
 from utils import get_jira, authenticate_gspread, create_or_get_worksheet, add_issue_to_worksheet, map_month_to_persian
 from val_nt import get_cell_value_from_val  # وارد کردن تابع
 from datetime import datetime
-from khayyam import JalaliDatetime  # برای ماه شمسی
+from persiantools.jdatetime import JalaliDate  # برای ماه شمسی
 from pathlib import Path
 
 # Search issues using JQL
@@ -127,7 +127,7 @@ def main():
         spreadsheet = client.create('Monthly Update LPO')
         print(f"Spreadsheet 'Monthly Update LPO' created.")
 
-    current_month = JalaliDatetime.now().strftime('%B')
+    current_month = JalaliDate.today().strftime('%B')
     Not_Touch_worksheet_name = f"Not Touch {current_month}"
     Not_Touch_worksheet = create_or_get_worksheet(spreadsheet, Not_Touch_worksheet_name)
 

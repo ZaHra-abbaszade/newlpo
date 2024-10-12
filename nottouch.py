@@ -5,7 +5,7 @@ from jira import JIRA
 from utils import get_jira, authenticate_gspread, create_or_get_worksheet, add_issue_to_worksheet, map_english_to_persian
 from val_nt import get_cell_value_from_val  # وارد کردن تابع
 from datetime import datetime
-from khayyam import JalaliDatetime  # برای ماه شمسی
+from persiantools.jdatetime import JalaliDate  # برای ماه شمسی
 from pathlib import Path
 
 # Function to validate the input format for customfield_22304
@@ -128,7 +128,6 @@ def main():
     # مسیر نسبی به فایل JSON
     current_directory = Path(__file__).parent
     json_keyfile = current_directory / "json.json"
-
     client = authenticate_gspread(json_keyfile, scope)
 
     # ایجاد یا باز کردن spreadsheet اصلی
@@ -140,7 +139,7 @@ def main():
         print(f"Spreadsheet 'Monthly Update LPO' created.")
 
     # گرفتن ماه شمسی جاری
-    current_month = JalaliDatetime.now().strftime('%B')
+    current_month = JalaliDate.today().strftime('%B')
 
     # ایجاد یا باز کردن worksheet با عنوان Not Touch {ماه جاری}
     Not_Touch_worksheet_name = f"Not Touch {current_month}"
