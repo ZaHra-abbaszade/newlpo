@@ -61,7 +61,7 @@ def main():
             print("Invalid format! Please enter in the format 'month year' (e.g., aban 1403).")
 
     # Extract issue keys
-    issue_keys = re.findall(r'NVR-\d+', cell_value)
+    issue_keys = re.findall(r'SI-\d+', cell_value)
     if not issue_keys:
         print("No valid issue keys found.")
         return

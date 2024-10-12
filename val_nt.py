@@ -32,32 +32,31 @@ def load_cities(file_path):
     with open(file_path, encoding='utf-8') as file:
         return json.load(file).get("cities_with_two_parts", [])
 
-# بررسی و تنظیم مقدار None برای فیلدهای customfield_20802 و customfield_20802:1
+# بررسی و تنظیم مقدار None برای فیلدهای customfield_20802
 def check_marketing_area(issue, valid_cities):
-    # گرفتن فیلدهای مارکتینگ اریا
-    marketing_area_part1 = getattr(issue.fields, 'customfield_20802', None)  # قسمت اول مارکتینگ اریا
-    marketing_area_part2 = getattr(issue.fields, 'customfield_20802:1', None)  # قسمت دوم مارکتینگ اریا
+    # گرفتن فیلد مارکتینگ اریا
+    marketing_area = getattr(issue.fields, 'customfield_20802', None)  # مارکتینگ اریا
 
-    # اگر هر دو قسمت None باشند، ایشو کاملاً نامعتبر است
-    if marketing_area_part1 == "None" and marketing_area_part2 == "None":
-        print(f"Issue {issue.key} is completely invalid: both parts are None.")
+    # اگر مارکتینگ اریا خالی باشد، ایشو نامعتبر است
+    if not marketing_area or marketing_area == "None":
+        print(f"Issue {issue.key} is invalid because the marketing area is empty.")
         return False
 
-    # بررسی اینکه آیا قسمت اول در لیست شهرهای معتبر هست
-    if marketing_area_part1 in valid_cities:
-        # هر دو قسمت نباید None باشند
-        if marketing_area_part1 != "None" and marketing_area_part2 != "None":
-            return True  # ایشو معتبر است
+    # بررسی اینکه آیا یکی از شهرهای معتبر در مارکتینگ اریا وجود دارد
+    is_valid_city = any(city in marketing_area for city in valid_cities)
+
+    # اگر شهر معتبر باشد، باید حداقل یک خط تیره داشته باشد
+    if is_valid_city:
+        if '-' in marketing_area:
+            print(f"Issue {issue.key} is valid: city is in the valid cities list and contains a hyphen.")
+            return True
         else:
-            print(f"Issue {issue.key} is invalid: both parts must be filled for cities in the list.")
+            print(f"Issue {issue.key} is invalid: city is in the valid cities list but does not contain a hyphen.")
             return False
     else:
-        # اگر قسمت اول در لیست نبود، قسمت دوم باید None باشد
-        if marketing_area_part2 == "None":
-            return True  # ایشو معتبر است
-        else:
-            print(f"Issue {issue.key} is invalid: second part must be None for cities not in the list.")
-            return False
+        # اگر هیچ‌کدام از شهرهای معتبر در مارکتینگ اریا نبود، ایشو معتبر است و خط تیره مهم نیست
+        print(f"Issue {issue.key} is valid: city is not in the valid cities list, hyphen is not required.")
+        return True
 
 def process_issues(jira_client, issue_keys, valid_cities):
     valid_issues = []
