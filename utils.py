@@ -37,11 +37,27 @@ def add_issue_to_worksheet(worksheet, issue_keys_with_time):
     for issue_key, update_time in issue_keys_with_time:
         worksheet.append_row([issue_key, update_time])
 
-# گرفتن ماه و سال شمسی فعلی
-def get_current_jalali_date():
-    current_jalali_datetime = JalaliDatetime.now()
-    current_month_name = current_jalali_datetime.strftime('%B')
-    current_year = current_jalali_datetime.year
-    return f"{current_month_name} {current_year}"
+# Mapping for English month names to Persian equivalents
+english_to_persian_months = {
+    "farvardin": "فروردین",
+    "ordibehesht": "اردیبهشت",
+    "khordad": "خرداد",
+    "tir": "تیر",
+    "mordad": "مرداد",
+    "shahrivar": "شهریور",
+    "mehr": "مهر",
+    "aban": "آبان",
+    "azar": "آذر",
+    "dey": "دی",
+    "bahman": "بهمن",
+    "esfand": "اسفند"
+}
 
+# Function to map English month names to Persian equivalents
+def map_english_to_persian(input_value):
+    month, year = input_value.split()
+    if month.lower() in english_to_persian_months:
+        return f"{english_to_persian_months[month.lower()]} {year}"
+    else:
+        return None
 

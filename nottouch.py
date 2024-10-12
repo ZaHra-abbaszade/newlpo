@@ -2,7 +2,7 @@ import re
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from jira import JIRA
-from utils import get_jira, authenticate_gspread, create_or_get_worksheet, add_issue_to_worksheet, get_current_jalali_date
+from utils import get_jira, authenticate_gspread, create_or_get_worksheet, add_issue_to_worksheet, map_english_to_persian
 from val_nt import get_cell_value_from_val  # وارد کردن تابع
 from datetime import datetime
 from khayyam import JalaliDatetime  # برای ماه شمسی
@@ -28,15 +28,15 @@ def main():
 
     # لیست برای ذخیره issue keys و زمان آپدیت آن‌ها
     issue_keys_with_time = []
-
-    # گرفتن ورودی customfield_22304 از کاربر
     while True:
-        custom_month_field_value = input("Enter Manual Assign Date (e.g., مهر 1403): ")
-        if validate_custom_field_input(custom_month_field_value):
-            break
-        else:
-            print("Invalid format! Please enter in the format 'ماه سال' (e.g., مهر 1403).")
-
+       custom_month_field_value = input("Enter Manual Assign Date (e.g., aban 1403): ")
+       mapped_value = map_english_to_persian(custom_month_field_value)
+       if mapped_value and validate_custom_field_input(mapped_value):
+        custom_month_field_value = mapped_value
+        break
+    else:
+        print("Invalid format! Please enter in the format 'month year' (e.g., aban 1403).")
+        
     # 1. به‌روزرسانی برای Issues تهران
     jql_query = f"issuekey IN ({cell_value}) AND (City ~ تهران)"
     print(f"JQL Query for Tehran: {jql_query}")
