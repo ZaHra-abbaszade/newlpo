@@ -3,7 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from jira import JIRA
 from utils import get_jira, authenticate_gspread, create_or_get_worksheet, add_issue_to_worksheet, map_month_to_persian
-from val_nt import get_cell_value_from_val  # وارد کردن تابع
+from val_nt import handle_issue_processing  # وارد کردن تابع
 from datetime import datetime
 from persiantools.jdatetime import JalaliDate  # برای ماه شمسی
 from pathlib import Path
@@ -32,11 +32,12 @@ def main():
 
     # List to store issue keys and update times
     issue_keys_with_time = []
+    
+    # فراخوانی تابع handle_issue_processing و دریافت cell_value
+    cell_value = handle_issue_processing()
 
-    # Get the cell value from val_nt.py
-    cell_value = get_cell_value_from_val()
     if not cell_value:
-        print("No valid cell value found.")
+        print("No valid cell_value found.")
         return
 
     # Extract only the issue keys from the cell value

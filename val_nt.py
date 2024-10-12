@@ -10,21 +10,21 @@ def setup_google_sheets(credentials_file, scopes):
     credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials_file, scopes)
     return gspread.authorize(credentials)
 
-# Extract Issue Keys from a specified cell
+# Extract Issue Keys from Google Sheets (including keys in parentheses)
 def extract_issue_keys(client, spreadsheet_id, sheet_name, row, col):
     sheet = client.open_by_key(spreadsheet_id)
     worksheet = sheet.worksheet(sheet_name)
     
     # Retrieve cell value from a specified row and column
     cell_value = worksheet.cell(row, col).value
-
-    # Extract issue keys from the parentheses (comma-separated)
+    
+    # Extract issue keys from inside parentheses (comma-separated)
     match = re.search(r'\((.*?)\)', cell_value)
     if match:
         issue_keys = match.group(1).split(", ")
         return issue_keys
     else:
-        print("Invalid cell format.")
+        print("Invalid cell format or no issues in parentheses.")
         return []
 
 # Load cities data from JSON
@@ -58,6 +58,8 @@ def check_marketing_area(issue, valid_cities):
         print(f"Issue {issue.key} is valid: city is not in the valid cities list, hyphen is not required.")
         return True
 
+
+
 def process_issues(jira_client, issue_keys, valid_cities):
     valid_issues = []
     invalid_issues = []
@@ -66,7 +68,7 @@ def process_issues(jira_client, issue_keys, valid_cities):
         try:
             issue = jira_client.issue(key)
             if check_marketing_area(issue, valid_cities):
-                valid_issues.append(key)
+                valid_issues.append(key)  # اگر اوکی بود به لیست ولید اضافه کن
             else:
                 invalid_issues.append(key)
         except Exception as error:
@@ -75,29 +77,6 @@ def process_issues(jira_client, issue_keys, valid_cities):
 
     return valid_issues, invalid_issues
 
-# Define get_cell_value_from_val to save the cell_value
-def get_cell_value_from_val():
-    # Google Sheets authentication setup
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    current_directory = Path(__file__).parent
-    json_keyfile = current_directory / "json.json"  # فایل اعتبار
-
-    # Authenticate with Google Sheets
-    creds = ServiceAccountCredentials.from_json_keyfile_name(json_keyfile, scope)
-    client = gspread.authorize(creds)
-
-    # Open the Google Sheet by ID and worksheet by name
-    sheet_id = "1Go5WNUGmiXf0IAiwraAcYoz5NLsNBWEa5tUlDyo22CE"  # ID Sheet
-    worksheet_name = "Dashboard"  # نام Worksheet
-
-    # Retrieve the value from a specified cell (row 2, column 98)
-    cell_value = client.open_by_key(sheet_id).worksheet(worksheet_name).cell(2, 98).value
-
-    if cell_value:
-        return cell_value
-    else:
-        print("No valid cell value found.")
-        return None
 
 # Main processing logic
 def handle_issue_processing():
@@ -108,16 +87,19 @@ def handle_issue_processing():
     # Load cities with two parts
     city_data = load_cities(city_file)
 
-    # Extract cell value using the get_cell_value_from_val function
-    cell_value = get_cell_value_from_val()
-    if not cell_value:
-        return
+    # Authenticate Google Sheets
+    credentials_file = Path(__file__).parent / "json.json"
+    client = setup_google_sheets(credentials_file, scopes)
 
-    # Process the cell_value to extract issue keys
-    issue_keys = re.findall(r'NVR-\d+', cell_value)
+    # Extract issue keys from Google Sheets (assumed from a specific cell)
+    spreadsheet_id = "1Go5WNUGmiXf0IAiwraAcYoz5NLsNBWEa5tUlDyo22CE"
+    sheet_name = "Dashboard"
+    row, col = 2, 98  # مشخص کردن سلول حاوی issue keys
+    issue_keys = extract_issue_keys(client, spreadsheet_id, sheet_name, row, col)
+
     if not issue_keys:
         print("No valid issue keys found.")
-        return
+        return None
 
     # Authenticate with Jira
     jira_client = get_jira()
@@ -127,11 +109,15 @@ def handle_issue_processing():
 
     # Output results
     if valid_issues:
-        valid_keys = ', '.join(valid_issues)
-        # اینجا سل ولیو آپدیت میشه
-        cell_value = valid_keys
+        valid_keys = ', '.join(valid_issues)  # تبدیل ولید ایشوها به رشته
+        cell_value = f"({valid_keys})"  # آپدیت کردن cell_value فقط با کلیدهای معتبر
         print(f"Valid issues: {valid_keys}")
+        return cell_value  # برگرداندن ولید ایشوها برای استفاده در کد اصلی
+    
     if invalid_issues:
         invalid_keys = ', '.join(invalid_issues)
         print(f"Invalid issues: {invalid_keys}")
+
+    return None
+
 
