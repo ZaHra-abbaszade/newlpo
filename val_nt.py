@@ -18,10 +18,11 @@ def extract_issue_keys(client, spreadsheet_id, sheet_name, row, col):
     # Retrieve cell value from a specified row and column
     cell_value = worksheet.cell(row, col).value
     
+    
     # Extract issue keys from inside parentheses (comma-separated)
     match = re.search(r'\((.*?)\)', cell_value)
     if match:
-        issue_keys = match.group(1).split(", ")
+        issue_keys = [key.strip() for key in match.group(1).split(", ")]  # Strip spaces
         return issue_keys
     else:
         print("Invalid cell format or no issues in parentheses.")
@@ -32,33 +33,29 @@ def load_cities(file_path):
     with open(file_path, encoding='utf-8') as file:
         return json.load(file).get("cities_with_two_parts", [])
 
-# بررسی و تنظیم مقدار None برای فیلدهای customfield_20802
 def check_marketing_area(issue, valid_cities):
     # گرفتن فیلد مارکتینگ اریا
     marketing_area = getattr(issue.fields, 'customfield_20802', None)  # مارکتینگ اریا
 
-    # اگر مارکتینگ اریا خالی باشد، ایشو نامعتبر است
-    if not marketing_area or marketing_area == "None":
-        print(f"Issue {issue.key} is invalid because the marketing area is empty.")
+    if marketing_area is None:
+        print(f"Issue {issue.key} has an invalid marketing area: None")
         return False
 
+    # Convert marketing_area to a string if it's not None
+    marketing_area_str = str(marketing_area)
+    
     # بررسی اینکه آیا یکی از شهرهای معتبر در مارکتینگ اریا وجود دارد
-    is_valid_city = any(city in marketing_area for city in valid_cities)
+    is_valid_city = any(city in marketing_area_str for city in valid_cities)
 
     # اگر شهر معتبر باشد، باید حداقل یک خط تیره داشته باشد
     if is_valid_city:
-        if '-' in marketing_area:
-            print(f"Issue {issue.key} is valid: city is in the valid cities list and contains a hyphen.")
+        if '-' in marketing_area_str:
             return True
         else:
-            print(f"Issue {issue.key} is invalid: city is in the valid cities list but does not contain a hyphen.")
             return False
     else:
         # اگر هیچ‌کدام از شهرهای معتبر در مارکتینگ اریا نبود، ایشو معتبر است و خط تیره مهم نیست
-        print(f"Issue {issue.key} is valid: city is not in the valid cities list, hyphen is not required.")
         return True
-
-
 
 def process_issues(jira_client, issue_keys, valid_cities):
     valid_issues = []
@@ -72,7 +69,6 @@ def process_issues(jira_client, issue_keys, valid_cities):
             else:
                 invalid_issues.append(key)
         except Exception as error:
-            print(f"Error retrieving issue {key}: {error}")
             invalid_issues.append(key)
 
     return valid_issues, invalid_issues
@@ -119,5 +115,7 @@ def handle_issue_processing():
         print(f"Invalid issues: {invalid_keys}")
 
     return None
+
+
 
 

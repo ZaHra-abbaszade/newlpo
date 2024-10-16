@@ -2,7 +2,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from jira import JIRA
 from datetime import datetime
-from khayyam import JalaliDatetime
+from persiantools.jdatetime import JalaliDate  # برای ماه شمسی
 from pathlib import Path
 
 # Set your Jira host manually

@@ -7,6 +7,7 @@ from val_nt import handle_issue_processing  # وارد کردن تابع
 from datetime import datetime
 from persiantools.jdatetime import JalaliDate  # برای ماه شمسی
 from pathlib import Path
+import time  # برای محاسبه زمان
 
 # Function to validate the input format for customfield_22304
 def validate_custom_field_input(input_value):
@@ -16,6 +17,8 @@ def validate_custom_field_input(input_value):
 
 # تابع اصلی شما
 def main():
+    start_time = time.time()  # ثبت زمان شروع
+
     # فراخوانی تابع handle_issue_processing و دریافت cell_value
     cell_value = handle_issue_processing()
 
@@ -147,6 +150,10 @@ def main():
 
     # افزودن اطلاعات issues به worksheet
     add_issue_to_worksheet(Not_Touch_worksheet, issue_keys_with_time)
+
+    end_time = time.time()  # ثبت زمان پایان
+    elapsed_time = end_time - start_time  # محاسبه زمان سپری شده
+    print(f"Elapsed time: {elapsed_time} seconds")
 
 if __name__ == "__main__":
     main()
