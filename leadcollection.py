@@ -3,7 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from jira import JIRA
 from utils import get_jira, authenticate_gspread, create_or_get_worksheet, add_issue_to_worksheet, map_english_to_persian
-from val_nt import handle_issue_processing  # وارد کردن تابع
+from val_lc import handle_issue_processing  # وارد کردن تابع
 from datetime import datetime
 from persiantools.jdatetime import JalaliDate  # برای ماه شمسی
 from pathlib import Path
