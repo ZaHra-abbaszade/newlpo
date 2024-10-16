@@ -8,11 +8,11 @@ from pathlib import Path
 # Set your Jira host manually
 HOST = 'https://jira.snappfood.ir'  # Manually set the Jira host
 
-# اتصال به Jira
-def get_jira() -> JIRA:
-    # Requesting username and password as input
-    username = input("Enter your Jira username: ")
-    password = input("Enter your Jira password: ")
+# اتصال به Jira با یک بار درخواست یوزرنیم و پسورد
+def get_jira(username=None, password=None) -> JIRA:
+    if not username or not password:
+        username = input("Enter your Jira username: ")
+        password = input("Enter your Jira password: ")
     return JIRA(server=HOST, basic_auth=(username, password))
 
 # احراز هویت Google Sheets

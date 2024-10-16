@@ -15,19 +15,22 @@ def validate_custom_field_input(input_value):
     pattern = r"^[\u0600-\u06FF]+\s\d{4}$"
     return bool(re.match(pattern, input_value))
 
-# تابع اصلی شما
 def main():
     start_time = time.time()  # ثبت زمان شروع
 
+    # درخواست یوزرنیم و پسورد فقط یک بار
+    username = input("Enter your Jira username: ")
+    password = input("Enter your Jira password: ")
+
     # فراخوانی تابع handle_issue_processing و دریافت cell_value
-    cell_value = handle_issue_processing()
+    cell_value = handle_issue_processing(username=username, password=password)
 
     if not cell_value:
         print("No valid cell_value found.")
         return
 
     # اتصال به Jira
-    jira = get_jira()
+    jira = get_jira(username=username, password=password)
 
     # لیست برای ذخیره issue keys و زمان آپدیت آن‌ها
     issue_keys_with_time = []

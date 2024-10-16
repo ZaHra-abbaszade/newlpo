@@ -38,7 +38,6 @@ def check_marketing_area(issue, valid_cities):
     marketing_area = getattr(issue.fields, 'customfield_20802', None)  # مارکتینگ اریا
 
     if marketing_area is None:
-        print(f"Issue {issue.key} has an invalid marketing area: None")
         return False
 
     # Convert marketing_area to a string if it's not None
@@ -67,15 +66,14 @@ def process_issues(jira_client, issue_keys, valid_cities):
             if check_marketing_area(issue, valid_cities):
                 valid_issues.append(key)  # اگر اوکی بود به لیست ولید اضافه کن
             else:
-                invalid_issues.append(key)
-        except Exception as error:
-            invalid_issues.append(key)
+                invalid_issues.append(key)  # فقط کلید ایشو را به لیست اضافه کن
+        except Exception:
+            invalid_issues.append(key)  # اگر در پردازش خطایی رخ داد، کلید را به لیست invalid اضافه کن
 
     return valid_issues, invalid_issues
 
 
-# Main processing logic
-def handle_issue_processing():
+def handle_issue_processing(username, password):
     # Google Sheets setup
     scopes = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     city_file = Path(__file__).parent / "cities.json"
@@ -98,23 +96,27 @@ def handle_issue_processing():
         return None
 
     # Authenticate with Jira
-    jira_client = get_jira()
+    jira_client = get_jira(username=username, password=password)  # ارسال username و password
 
     # Process issue keys and validate marketing areas
     valid_issues, invalid_issues = process_issues(jira_client, issue_keys, city_data)
 
     # Output results
+    cell_value = None  # مقدار اولیه برای cell_value
+
     if valid_issues:
         valid_keys = ', '.join(valid_issues)  # تبدیل ولید ایشوها به رشته
         cell_value = f"({valid_keys})"  # آپدیت کردن cell_value فقط با کلیدهای معتبر
         print(f"Valid issues: {valid_keys}")
-        return cell_value  # برگرداندن ولید ایشوها برای استفاده در کد اصلی
-    
+
     if invalid_issues:
         invalid_keys = ', '.join(invalid_issues)
-        print(f"Invalid issues: {invalid_keys}")
+        print(f"Invalid issues: {invalid_keys}")  # فقط کلیدهای invalid چاپ می‌شود
 
-    return None
+    return cell_value  # برگرداندن cell_value در نهایت
+
+
+
 
 
 
